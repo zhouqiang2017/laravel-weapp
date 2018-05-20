@@ -1,6 +1,6 @@
 {
   "name": "laravel-weapp",
-  "version": "0.0.2",
+  "version": "1.6.0",
   "description": "laravel weapp project",
   "main": "dist/app.js",
   "scripts": {
@@ -17,6 +17,7 @@
   "author": "jqy.zhou@gmail.com",
   "license": "MIT",
   "dependencies": {
+    "moment": "^2.22.1",
     "redux": "^3.7.2",
     "redux-actions": "^2.2.1",
     "redux-promise": "^0.5.3",
