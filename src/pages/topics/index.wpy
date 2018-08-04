@@ -1,5 +1,5 @@
 <style lang="less">
-  .weui-media-box__info__meta {
+    .weui-media-box__info__meta {
     margin: 0;
     font-size: 12px;
   }
@@ -21,36 +21,124 @@
     background-color: #d8d8d8;
     float: right;
   }
+    /*分类*/
+  .weui-flex {
+    align-items: center;
+  }
+  .weui-cells {
+    margin-top: 0;
+    opacity: 0;
+    transition: .3s;
+    &:before, &:after {
+        display: none;
+    }
+    &_show {
+        opacity: 1;
+    }
+  }
+  .weui-cell {
+    &:before {
+        right: 15px;
+    }
+  }
+  .category-list__item {
+    margin: 10px 0;
+    background-color: #FFFFFF;
+    border-radius: 2px;
+    overflow: hidden;
+    &:first-child {
+        margin-top: 0;
+    }
+  }
+  .category-list__item_selected {
+    background-color: #eeeeee;
+  }
+  .category-list__img {
+    width: 30px;
+    height: 30px;
+  }
+
+  .category-list__item-hd {
+    padding: 20px;
+    transition: opacity .3s;
+    &_show {
+        opacity: .4;
+    }
+  }
+  .category-list__item-bd {
+    height: 0;
+    overflow: hidden;
+    &_show {
+        height: auto;
+    }
+  }
 </style>
 <template>
-<view class="page">
-  <view class="page__bd">
-    <view class="weui-panel weui-panel_access">
-      <view class="weui-panel__bd">
-        <repeat for="{{ topics }}" key="id" index="index" item="topic">
-          <navigator url="" class="weui-media-box weui-media-box_appmsg" hover-class="weui-cell_active">
-            <view class="weui-media-box__hd weui-media-box__hd_in-appmsg">
-              <image class="weui-media-box__thumb avatar" src="{{ topic.user.avatar }}" />
+    <view class="page">
+        <view class="category-list__item">
+            <view @tap="toggle" class="weui-flex category-list__item-hd">
+                <view class="weui-flex__item page-title">
+                    {{ currentCategory.name || '话题' }}
+                </view>
+                <image class="category-list__img" src="/images/category.png">
+                </image>
             </view>
-            <view class="weui-media-box__bd weui-media-box__bd_in-appmsg">
-              <view class="weui-media-box__title topic-title">{{ topic.title }}</view>
-
-              <view class="weui-media-box__info topic-info">
-                <view class="weui-media-box__info__meta">{{ topic.category.name }} • </view>
-                <view class="weui-media-box__info__meta">{{ topic.user.name }} • </view>
-                <view class="weui-media-box__info__meta">{{ topic.updated_at_diff }}</view>
-              </view>
+            <view class="category-list__item-bd {{ categoryOpen ? 'category-list__item-bd_show' : '' }}">
+                <view class="weui-cells {{ categoryOpen ? 'weui-cells_show' : '' }}">
+                    <view @tap="changeCatgory()" class="weui-cell weui-cell_access {{ !currentCategory.id ? 'category-list__item_selected' : '' }}">
+                        <view class="weui-cell__bd">
+                            话题
+                        </view>
+                    </view>
+                    <repeat for="{{ categories }}" item="category" key="id">
+                        <view @tap="changeCatgory({{ category.id }})" class="weui-cell weui-cell_access {{ currentCategory.id == category.id ? 'category-list__item_selected' : '' }}">
+                            <view class="weui-cell__bd">
+                                {{ category.name }}
+                            </view>
+                        </view>
+                    </repeat>
+                </view>
             </view>
-            <view class="weui-badge reply-count">{{ topic.reply_count }}</view>
-          </navigator>
-        </repeat>
-        <view class="weui-loadmore weui-loadmore_line" wx:if="{{ noMoreData }}">
-          <view class="weui-loadmore__tips weui-loadmore__tips_in-line">没有更多数据</view>
         </view>
-      </view>
+        <view class="page__bd">
+            <view class="weui-panel weui-panel_access">
+                <view class="weui-panel__bd">
+                    <repeat for="{{ topics }}" index="index" item="topic" key="id">
+                        <navigator class="weui-media-box weui-media-box_appmsg" hover-class="weui-cell_active" url="/pages/topics/show?id={{ topic.id }}">
+                            <view class="weui-media-box__hd weui-media-box__hd_in-appmsg">
+                                <image class="weui-media-box__thumb avatar" src="{{ topic.user.avatar }}">
+                                </image>
+                            </view>
+                            <view class="weui-media-box__bd weui-media-box__bd_in-appmsg">
+                                <view class="weui-media-box__title topic-title">
+                                    {{ topic.title }}
+                                </view>
+                                <view class="weui-media-box__info topic-info">
+                                    <view class="weui-media-box__info__meta">
+                                        {{ topic.category.name }} •
+                                    </view>
+                                    <view class="weui-media-box__info__meta">
+                                        {{ topic.user.name }} •
+                                    </view>
+                                    <view class="weui-media-box__info__meta">
+                                        {{ topic.updated_at_diff }}
+                                    </view>
+                                </view>
+                            </view>
+                            <view class="weui-badge reply-count">
+                                {{ topic.reply_count }}
+                            </view>
+                        </navigator>
+                    </repeat>
+                    <view class="weui-loadmore weui-loadmore_line" wx:if="{{ noMoreData }}">
+                        <view class="weui-loadmore__tips weui-loadmore__tips_in-line">
+                            没有更多数据
+                        </view>
+                    </view>
+                </view>
+            </view>
+        </view>
     </view>
-  </view>
-</view>
 </template>
 <script>
   import wepy from 'wepy'
@@ -66,7 +154,15 @@
       topics: [],
       // 当前分页
       page: 1,
-      noMoreData: false
+      noMoreData: false,
+      categories: [],
+      categoryOpen: false,
+      currentCategory: {}
+    }
+    computed = {
+      currentCategoryId () {
+        return this.currentCategory.id || 0
+      }
     }
     // 获取话题数据
     async getTopics(page = 1, reset = false) {
@@ -74,7 +170,10 @@
         let topicsResponse = await api.request({
           url: 'topics',
           data: {
+            // 分页
             page: page,
+            // 选举中的分类id
+            category_id: this.currentCategoryId,
             include: 'user,category'
           }
         })
@@ -100,8 +199,45 @@
         })
       }
     }
+    async getCategories() {
+      // 从缓存中获取分类数据
+      let categories = wepy.getStorageSync('categories')
+
+      if (!categories) {
+        try {
+          let categoriesResponse = await api.request('categories')
+          // 请求成功将数据添加至缓存
+          if (categoriesResponse.statusCode === 200) {
+            categories = categoriesResponse.data.data
+            wepy.setStorageSync('categories', categories)
+          }
+        } catch (err) {
+          wepy.showModal({
+            title: '提示',
+            content: '服务器错误，请联系管理员'
+          })
+        }
+      }
+
+      this.categories = categories
+      this.$apply()
+    }
+    methods = {
+      toggle () {
+        this.categoryOpen = !this.categoryOpen
+      },
+      async changeCatgory (id = 0) {
+        // 找到选中的分类
+        this.currentCategory = id ? this.categories.find(category => category.id === id) : {}
+        // 点击以后关闭下拉列表
+        this.categoryOpen = false
+        this.$apply()
+        await this.getTopics(1, true)
+      }
+    }
     async onLoad() {
       this.getTopics()
+      this.getCategories()
     }
     async onPullDownRefresh() {
       this.noMoreData = false
