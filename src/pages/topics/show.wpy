@@ -109,8 +109,8 @@ page{
         if (!this.topic || !this.user) {
           return false
         }
-        // 当前用户是话题的发布者
-        return this.user.id === this.topic.user_id
+        // 当前用户是话题的发布者 或 有管理内容权限
+        return (this.user.id === this.topic.user_id) || this.$parent.can('manage_contents')
       }
     }
     // 获取话题数据
@@ -211,6 +211,23 @@ page{
       this.$parent.checkRefreshPages(this.getCurrentPages().pop().route, () => {
         this.getTopic(this.topic.id)
       })
+    }
+    // 设置分享
+    onShareAppMessage (res) {
+      return {
+        // 标题是话题标题
+        title: this.topic.title,
+        // 路径为话题详情路径
+        path: '/pages/topics/show?id=' + this.topic.id,
+        success: function(res) {
+          // 转发成功
+          console.log(res)
+        },
+        fail: function(res) {
+          // 转发失败
+          console.log(res)
+        }
+      }
     }
   }
 </script>
